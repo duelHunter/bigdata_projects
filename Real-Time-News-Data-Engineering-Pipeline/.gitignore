@@ -1,0 +1,12 @@
+﻿.env
+.env.example
+__pycache__/
+*.pyc
+data/
+logs/
+.venv/
+venv/
+*.egg-info/
+.idea/
+.vscode/
+__init__.py
