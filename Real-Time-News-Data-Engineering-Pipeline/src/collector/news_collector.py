@@ -48,7 +48,7 @@ def fetch_everything(api_key, query="technology", page_size=100, sort_by="publis
     return response.json()
 
 
-def save_raw_json(data, endpoint_name):
+def save_raw_json(data, endpoint_name, query=None):
     now = datetime.now()
     date_path = RAW_DATA_DIR / str(now.year) / f"{now.month:02d}" / f"{now.day:02d}"
     date_path.mkdir(parents=True, exist_ok=True)
@@ -56,8 +56,19 @@ def save_raw_json(data, endpoint_name):
     filename = f"{endpoint_name}_{now.strftime('%H%M%S')}.json"
     filepath = date_path / filename
 
+    envelope = {
+        "metadata": {
+            "endpoint": endpoint_name,
+            "query": query,
+            "collected_at": now.isoformat(),
+            "article_count": len(data.get("articles", [])),
+            "total_results": data.get("totalResults", 0),
+        },
+        "raw_response": data,
+    }
+
     with open(filepath, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+        json.dump(envelope, f, indent=2, ensure_ascii=False)
 
     return filepath
 
@@ -70,9 +81,10 @@ def main():
     path = save_raw_json(headlines, "headlines")
     print(f"  Saved {headlines.get('totalResults', 0)} results -> {path}")
 
-    print("Fetching everything (technology)...")
-    everything = fetch_everything(api_key, query="technology")
-    path = save_raw_json(everything, "everything")
+    query = "technology"
+    print(f"Fetching everything ({query})...")
+    everything = fetch_everything(api_key, query=query)
+    path = save_raw_json(everything, "everything", query=query)
     print(f"  Saved {everything.get('totalResults', 0)} results -> {path}")
 
     print("Done.")
